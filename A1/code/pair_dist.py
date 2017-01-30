@@ -6,6 +6,14 @@ import tensorflow as tf
 # two input matrices (x,z)
 def pair_dist(x, z):
 
+    # Transform 1D tensor to 2D
+
+    if len(x.get_shape()) == 1:
+        x = tf.reshape(x,[1,x.get_shape().as_list()[0]])
+
+    if len(z.get_shape()) == 1:
+        z = tf.reshape(z,[1,z.get_shape().as_list()[0]])
+
     # Reshape x to Bx1xN
     x = tf.reshape(x,tf.pack([x.get_shape()[0],1,x.get_shape()[1]]))
 
@@ -24,8 +32,12 @@ def pair_dist(x, z):
 
 
 def main():
-    x = tf.constant([[1,2],[3,4],[5,6]])
-    z = tf.constant([[1,2],[3,4],[5,6],[7,8]])
+    # x = tf.constant([[1,2],[3,4],[5,6]])
+    # z = tf.constant([[1,2],[3,4],[5,6],[7,8]])
+    x = tf.constant([[1],[2],[3],[4]])
+    z = tf.constant([[1],[2],[3]])
+
+
 
     init = tf.global_variables_initializer()
     sess = tf.Session()
@@ -34,6 +46,8 @@ def main():
     sess.run(init)
 
     print(sess.run(pair_dist(x,z)))
+    # values,indices = tf.nn.top_k(pair_dist(x,z),1)
+    # print(sess.run([indices,values]))
 
 
 if __name__ == '__main__':
