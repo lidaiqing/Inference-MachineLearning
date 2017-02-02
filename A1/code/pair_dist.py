@@ -30,12 +30,16 @@ def pair_dist(x, z):
 
     return tf.reduce_sum(diff,2)
 
+def euclid_distance(X, Z):
+	X = (tf.expand_dims(X, 1))
+	Z = (tf.expand_dims(Z, 0))
+	return tf.reduce_sum(tf.squared_difference(X, Z), 2)
 
 def main():
     # x = tf.constant([[1,2],[3,4],[5,6]])
     # z = tf.constant([[1,2],[3,4],[5,6],[7,8]])
-    x = tf.constant([[1],[2],[3],[4]])
-    z = tf.constant([[1],[2],[3]])
+    x = tf.constant([[1,2],[3,4]])
+    z = tf.constant([[1,1],[2,2]])
 
 
 
