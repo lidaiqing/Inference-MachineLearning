@@ -37,4 +37,4 @@ def layerBlock_decay(x, n_units, decay_rate):
     weight_decay = tf.mul(tf.nn.l2_loss(W), decay_rate)
     tf.add_to_collection('losses',weight_decay)
     z = tf.add(tf.matmul(x, W), b)
-    return z
+    return z, W
