@@ -23,7 +23,7 @@ with np.load("../data/notMNIST.npz") as data:
     testTarget = dense_to_one_hot(testTarget, 10)
 
 # Parameters
-learning_rate_list = [0.001, 0.01, 0.1]
+learning_rate_list = [0.001]#, 0.01, 0.1]
 batch_size = 100
 display_step = 1
 decay_rate = 3e-4
@@ -38,7 +38,7 @@ def buildGraph(decay_rate, learning_rate):
     y_target = tf.placeholder(tf.float32, [None,10], name='target_y')
 
     # Graph definition
-    layer_1 = layerBlock_decay(X, n_hidden_1, decay_rate)
+    layer_1, W1 = layerBlock_decay(X, n_hidden_1, decay_rate)
     layer_1 = tf.nn.relu(layer_1)
     out_layer = layerBlock(layer_1, n_classes)
     y_predicted = out_layer
@@ -53,10 +53,10 @@ def buildGraph(decay_rate, learning_rate):
     # Training mechanism
     optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
     train = optimizer.minimize(loss=error)
-    return X, y_target, y_predicted, error, train, acc
+    return X, y_target, y_predicted, error, train, acc, W1
 
 for learning_rate in learning_rate_list:
-    X, y_target, y_predicted, error, train, acc = buildGraph(decay_rate, learning_rate)
+    X, y_target, y_predicted, error, train, acc, W1 = buildGraph(decay_rate, learning_rate)
 
     init = tf.global_variables_initializer()
     sess = tf.InteractiveSession()
@@ -68,7 +68,7 @@ for learning_rate in learning_rate_list:
     test_loss_recorder = np.array([])
     test_mis_recorder = np.array([])
 
-    numIteration = 500
+    numIteration = 10
     for itr in range(numIteration):
         batch_xs, batch_ys = getRandomBatch(trainData, trainTarget, batch_size)
         accuracy, loss, _ = sess.run([acc, error, train], feed_dict={X: batch_xs, y_target: batch_ys})
@@ -85,7 +85,7 @@ for learning_rate in learning_rate_list:
 
         print("Iteration: %d, Train Acc: %0.3f, Valid Acc: %0.3f"%(itr, accuracy*100, valid_acc*100))
 
-    plt.figure();
+    plt.figure()
     plt.plot(np.arange(numIteration), train_loss_recorder, 'g', label="Train")
     plt.plot(np.arange(numIteration), valid_loss_recorder, 'r', label="Valid")
     plt.plot(np.arange(numIteration), test_loss_recorder, 'b', label="Test")
@@ -94,7 +94,7 @@ for learning_rate in learning_rate_list:
     plt.title("Total loss VS number of updates for learning_rate = %0.3f"%(learning_rate))
     plt.show(block=False)
 
-    plt.figure();
+    plt.figure()
     plt.plot(np.arange(numIteration), train_mis_recorder, 'g', label="Train")
     plt.plot(np.arange(numIteration), valid_mis_recorder, 'r', label="Valid")
     plt.plot(np.arange(numIteration), test_mis_recorder, 'b', label="Test")
@@ -102,4 +102,17 @@ for learning_rate in learning_rate_list:
     #plt.axis([0,500, 0, 2])
     plt.title("Error VS number of updates for learning_rate = %0.3f"%(learning_rate))
     plt.show(block=False)
+
+    plt.figure()
+    f, axarr = plt.subplots(40,2)
+    W1_eval = W1.eval()
+    # print W1_eval.shape
+    # print W1_eval[:,0].shape
+    for i in range(40):
+        for j in range(2):
+            axarr[i,j].imshow(W1_eval[:,i*25+j].reshape(28,28), cmap='gray')
+            axarr[i,j].axis('off')
+
+    plt.show(block=False);
+
 plt.show()
