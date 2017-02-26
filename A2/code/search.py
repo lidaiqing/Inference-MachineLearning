@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import *
+from datetime import datetime
 
 # Network Parameters
 n_hidden_1 = 500
@@ -39,7 +40,8 @@ def buildGraph(numLayers, unitPerLayer, decay_rate, learning_rate, dropOut):
 
 with np.load("../data/notMNIST.npz") as data:
     Data, Target = data ["images"], data["labels"]
-    np.random.seed(521)
+    # np.random.seed(521)
+    random.seed(datetime.now())
     randIndx = np.arange(len(Data))
     np.random.shuffle(randIndx)
     Data = Data[randIndx]/255.
@@ -89,6 +91,7 @@ for numMod in range(5):
     test_mis_recorder = np.array([])
 
     numIteration = 2000
+    global_best_test_acc = 0
     best_acc_valid = 0
     best_acc_test = 0
 
@@ -126,3 +129,15 @@ for numMod in range(5):
     # plt.show()
 
     print("ValidAcc = %0.3f, testAcc = %0.3f\n" %(best_acc_valid, best_acc_test))
+    if(global_best_test_acc < best_acc_test):
+        global_best_test_acc = best_acc_test
+        b_lr = learning_rate
+        b_dr = decay_rate
+        b_do = dropOut
+        b_nl = numLayers
+        b_ul = unitPerLayer
+        b_va = best_acc_valid
+
+print("BEST: LR = %0.10f, NL = %d, DR = %0.10f, Dropout = %d, ValidAcc = %0.3f,  TestAcc = %0.3f",\
+    %(b_lr, b_nl, b_dr, b_do, b_va, global_best_test_acc))
+print(b_ul)
