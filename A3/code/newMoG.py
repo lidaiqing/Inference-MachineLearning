@@ -20,18 +20,21 @@ def logP(x, mu, stddev):
 def buildGraph_mog_Adam(K, learning_rate):
     # Variable creation
     points = tf.placeholder(tf.float32, [None, 2], name='input_points')
-    mu = tf.Variable(tf.truncated_normal(shape=[K,2], stddev=1), name='mu')
+    mu = tf.Variable(tf.truncated_normal(shape=[K,2], stddev=0.5), name='mu')
     # sigma = tf.Variable(tf.truncated_normal(shape=[K,2], stddev=0.5), name='sigma')
-    stddev = tf.Variable(tf.exp(tf.truncated_normal(shape=[K,1], stddev=0.5)), name='sigma')
+    stddev = tf.Variable(tf.exp(tf.truncated_normal(shape=[K,1], stddev=0.5)), name='stddev')
     # pi =  tf.Variable(tf.div(tf.ones([K]),K), name="pi")
-    phi = tf.Variable(tf.div(tf.ones(shape=[K,1]), K), name='sigma')
+    phi = tf.Variable(tf.div(tf.ones(shape=[K,1]), K), name='phi')
 
     N = tf.shape(points)[0]
 
     pdf = logP(points, mu, stddev)
     print tf.shape(pdf)
-    pi = tf.exp(phi) / tf.reduce_sum(tf.exp(phi))
-    loss = -tf.reduce_sum(reduce_logsumexp(tf.multiply(pi, pdf)))
+    # pi = tf.exp(phi) / tf.reduce_sum(tf.exp(phi))
+    pi = logsoftmax(phi)
+    # loss = -tf.reduce_sum(reduce_logsumexp(tf.multiply(pi, pdf)))
+    loss = -tf.reduce_sum(reduce_logsumexp(pi + pdf, 0), 0)
+    # loss = -reduce_logsumexp(tf.reduce_sum(tf.multiply(pi, pdf), 0))
 
     # Training mechanism
     optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate, beta1=0.9, beta2=0.99, epsilon=1e-5)
@@ -46,17 +49,17 @@ sess = tf.InteractiveSession()
 sess.run(init)
 loss_recorder = np.array([])
 
-numIteration = 500
+numIteration = 5000
 for itr in range(numIteration):
     loss_, _, prob, centroid = sess.run([loss, train, pdf, mu], feed_dict={points: points_2d})
     loss_recorder = np.append(loss_recorder, loss_)
-    if itr % 100 == 0:
+    if itr % 200 == 0:
         print("Iteration#: %d, loss: %0.2f"%(itr, loss_))
 # plt.plot(np.arange(numIteration), loss_recorder, 'g')
 # #plt.axis([0,500, 0, 2])
 # plt.title("Total loss VS number of updates for learning_rate = %0.3f"%(learning_rate))
 # plt.show()
-        print prob[:, 0:10]
+        # print prob[:, 0:10]
 
         # print prob
         # print prob.shape
